@@ -1,0 +1,6 @@
+{
+  "name": "Tiên Tu: Bí Cảnh Sinh Tồn",
+  "description": "Web Game nhập vai tu tiên kết hợp Roguelite Arena sinh tồn đồ họa Chibi Võ Hiệp. Tọa thiền, đột phá thiên kiếp, xuất chiến bí cảnh trừ ma kiếm khí ngập tràn.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
