@@ -20,7 +20,7 @@ export const SectView: React.FC<SectViewProps> = ({
   onBuySectItem
 }) => {
   const [activeTab, setActiveTab] = useState<'missions' | 'shop'>('shop');
-  const [shopCategory, setShopCategory] = useState<'cong_phap' | 'cong_thuc'>('cong_phap');
+  const [shopCategory, setShopCategory] = useState<'cong_phap' | 'chi_bao'>('cong_phap');
 
   // Disciple rank
   let rank = 'Ngoại Môn Đệ Tử';
@@ -122,10 +122,10 @@ export const SectView: React.FC<SectViewProps> = ({
           </button>
         </div>
 
-        {/* TAB 1: TÔNG MÔN TÀNG CÁC (CHIA 2 MỤC: CÔNG PHÁP & CÔNG THỨC) */}
+        {/* TAB 1: TÔNG MÔN TÀNG CÁC (CHIA 2 MỤC: CÔNG PHÁP & CHÍ BẢO) */}
         {activeTab === 'shop' && (
           <div className="space-y-5">
-            {/* Sub-tabs: Công Pháp & Công Thức */}
+            {/* Sub-tabs: Công Pháp & Chí Bảo */}
             <div className="flex items-center justify-between bg-slate-900/90 p-2 rounded-2xl border border-slate-800">
               <div className="flex items-center gap-2">
                 <button
@@ -141,15 +141,15 @@ export const SectView: React.FC<SectViewProps> = ({
                 </button>
 
                 <button
-                  onClick={() => setShopCategory('cong_thuc')}
+                  onClick={() => setShopCategory('chi_bao')}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-                    shopCategory === 'cong_thuc'
+                    shopCategory === 'chi_bao'
                       ? 'bg-purple-600 text-white shadow-md'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <Hammer className="w-4 h-4" />
-                  <span>2. CÔNG THỨC & ĐAN DƯỢC</span>
+                  <Sparkles className="w-4 h-4" />
+                  <span>2. CHÍ BẢO TRẤN TÔNG (4 Đại Thần Khí)</span>
                 </button>
               </div>
 
@@ -171,6 +171,9 @@ export const SectView: React.FC<SectViewProps> = ({
                 } else if (item.id === 'skill_vo_ha_han') {
                   const cp = player.congPhapList.find((c) => c.id === 'vo_ha_han');
                   isOwned = Boolean(cp && cp.unlocked);
+                } else if (item.category === 'chi_bao') {
+                  const cb = player.chiBaoList?.find((c) => c.id === item.id);
+                  isOwned = Boolean(cb && cb.unlocked);
                 }
 
                 const canAfford = player.sectContributionPoints >= item.costContribution;
@@ -209,9 +212,9 @@ export const SectView: React.FC<SectViewProps> = ({
                         <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
                           item.category === 'cong_phap'
                             ? 'bg-amber-950 text-amber-300 border border-amber-500'
-                            : 'bg-sky-950 text-sky-300 border border-sky-500'
+                            : 'bg-indigo-950 text-indigo-300 border border-indigo-500'
                         }`}>
-                          {item.category === 'cong_phap' ? 'Công Pháp' : 'Công Thức'}
+                          {item.category === 'cong_phap' ? 'Công Pháp' : 'Chí Bảo'}
                         </span>
                       </div>
 
@@ -234,7 +237,7 @@ export const SectView: React.FC<SectViewProps> = ({
                       {isOwned ? (
                         <>
                           <CheckCircle className="w-3.5 h-3.5" />
-                          <span>Đã Lĩnh Ngộ</span>
+                          <span>Đã Sở Hữu</span>
                         </>
                       ) : canAfford ? (
                         <>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlayerStats, RealmInfo, Item, FashionConfig } from './types/game';
+import { PlayerStats, RealmInfo, Item, FashionConfig, EquipmentItem } from './types/game';
 import { REALMS, INITIAL_PLAYER, SectShopItem } from './constants/gameData';
 import { loadGame, saveGame, resetGame, formatLifespan } from './services/storage';
 import { sound } from './services/audio';
@@ -8,6 +8,9 @@ import { ChibiCharacterRenderer } from './components/ChibiCharacterRenderer';
 import { DongPhuView } from './components/DongPhuView';
 import { ArenaCanvas } from './components/ArenaCanvas';
 import { CongPhapView } from './components/CongPhapView';
+import { EquipmentView } from './components/EquipmentView';
+import { ChiBaoView } from './components/ChiBaoView';
+import { IndexMonsterView } from './components/IndexMonsterView';
 import { InventoryView } from './components/InventoryView';
 import { MarketView } from './components/MarketView';
 import { SectView } from './components/SectView';
@@ -34,17 +37,20 @@ import {
   Sparkles,
   Edit2,
   AlertTriangle,
-  Settings
+  Settings,
+  Compass,
+  Skull
 } from 'lucide-react';
 
 export default function App() {
   const [player, setPlayer] = useState<PlayerStats>(loadGame);
   const [currentScreen, setCurrentScreen] = useState<'dongphu' | 'arena'>('dongphu');
-  const [activeTab, setActiveTab] = useState<'dongphu' | 'arena' | 'congphap' | 'inventory' | 'market' | 'sect' | 'fashion'>('dongphu');
+  const [activeTab, setActiveTab] = useState<'dongphu' | 'equipment' | 'artifacts' | 'congphap' | 'index' | 'inventory' | 'market' | 'sect' | 'fashion'>('dongphu');
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(player.name);
+  const [isTrueDeath, setIsTrueDeath] = useState(false);
 
   // Modals
   const [tribulationRealm, setTribulationRealm] = useState<RealmInfo | null>(null);
@@ -75,17 +81,20 @@ export default function App() {
         // 1. Tọa Thiền Tự Động (khi isMeditating bật và đang ở Tĩnh Thất)
         let expGain = 0;
         if (currentScreen === 'dongphu' && prev.isMeditating) {
-          expGain = prev.cultivationSpeedBonus || 1;
+          const isTuKhiEquipped = prev.equippedArtifactIds?.includes('chi_bao_tu_khi');
+          const tuKhiObj = prev.chiBaoList?.find((c) => c.id === 'chi_bao_tu_khi');
+          const tuKhiBonus = isTuKhiEquipped ? (tuKhiObj?.star || 1) : 0;
+          expGain = (prev.cultivationSpeedBonus || 1) + tuKhiBonus;
         }
 
         // 2. Thọ nguyên đếm ngược: 1 giây
         const newLifespan = Math.max(0, prev.lifespanSeconds - 1);
 
-        // 3. Đói & Khát tăng nhẹ: 1 điểm mỗi 35s
-        const hungerRate = prev.maxHunger / 3500;
-        const thirstRate = prev.maxThirst / 2800;
-        const newHunger = Math.min(prev.maxHunger, prev.hunger + hungerRate);
-        const newThirst = Math.min(prev.maxThirst, prev.thirst + thirstRate);
+        // 3. Đói & Khát giảm dần về 0: 1 điểm mỗi 30s (0 = đói khát)
+        const hungerRate = prev.maxHunger / 3000;
+        const thirstRate = prev.maxThirst / 2500;
+        const newHunger = Math.max(0, prev.hunger - hungerRate);
+        const newThirst = Math.max(0, prev.thirst - thirstRate);
 
         // 4. Hồi Khí Huyết (HP) ở Tĩnh Thất: +1 HP mỗi 60 giây (1 phút)
         let newHp = prev.hp;
@@ -99,6 +108,12 @@ export default function App() {
           newMp = Math.min(prev.maxMp, newMp + 1);
         }
 
+        // 6. Niết Bàn Phượng Vũ hồi chiêu giảm dần
+        let newPhoenixCd = prev.phoenixReviveCooldownSeconds || 0;
+        if (newPhoenixCd > 0) {
+          newPhoenixCd = Math.max(0, newPhoenixCd - 1);
+        }
+
         return {
           ...prev,
           exp: prev.exp + expGain,
@@ -106,7 +121,8 @@ export default function App() {
           hunger: Number(newHunger.toFixed(2)),
           thirst: Number(newThirst.toFixed(2)),
           hp: Math.round(newHp),
-          mp: Math.round(newMp)
+          mp: Math.round(newMp),
+          phoenixReviveCooldownSeconds: newPhoenixCd
         };
       });
     }, 1000);
@@ -114,10 +130,10 @@ export default function App() {
     return () => clearInterval(timer);
   }, [currentScreen]);
 
-  // Action: Vào Bí Cảnh (Tiêu hao 5 phút thọ nguyên = 300s, TỰ ĐỘNG TẠM DỪNG TỌA THIỀN & XÓA TOÀN BỘ BUFF CŨ)
+  // Action: Vào Bí Cảnh (Tiêu hao 1 năm Thọ nguyên = 60s)
   const handleEnterArena = () => {
-    if (player.lifespanSeconds < 300) {
-      alert('Thọ nguyên không đủ 5 phút! Hãy dùng Diên Thọ Tán hoặc đột phá cảnh giới để gia tăng thọ mệnh.');
+    if (player.lifespanSeconds < 60) {
+      alert('Thọ nguyên không đủ 1 năm (60s)! Hãy dùng Diên Thọ Tán hoặc đột phá cảnh giới để gia tăng thọ mệnh.');
       return;
     }
 
@@ -138,14 +154,14 @@ export default function App() {
       critDmg: 1.5,
       hp: Math.min(realm.baseHp, prev.hp),
       mp: Math.min(realm.baseMp, prev.mp),
-      lifespanSeconds: prev.lifespanSeconds - 300,
+      lifespanSeconds: prev.lifespanSeconds - 60, // Giảm từ 5 năm xuống 1 năm
       isMeditating: false
     }));
 
     setCurrentScreen('arena');
   };
 
-  // Action: Quay về từ Bí Cảnh (Rơi nguyên liệu vào túi đồ, tử nạn thì còn đúng 1 HP, xóa 100% buff tạm thời)
+  // Action: Quay về từ Bí Cảnh
   const handleRetreatFromArena = (result: {
     survived: boolean;
     spiritStonesGained: number;
@@ -154,6 +170,12 @@ export default function App() {
     remainingHp: number;
     lootItems: Item[];
   }) => {
+    // Nếu tử nạn trong Bí Cảnh và hết máu (không được hồi sinh bởi Niết Bàn Phượng Vũ)
+    if (!result.survived && result.remainingHp <= 0) {
+      setIsTrueDeath(true);
+      return;
+    }
+
     setPlayer((prev) => {
       const realm = REALMS[prev.realmIndex] || REALMS[0];
       const inv = [...prev.inventory];
@@ -170,7 +192,6 @@ export default function App() {
 
       return {
         ...prev,
-        // Đặt lại chuẩn chỉ số của cảnh giới bên ngoài, xóa sạch mọi buff của bí cảnh
         maxHp: realm.baseHp,
         maxMp: realm.baseMp,
         atk: realm.baseAtk,
@@ -178,7 +199,7 @@ export default function App() {
         speed: 220,
         critRate: 0.12,
         critDmg: 1.5,
-        hp: result.survived ? Math.min(realm.baseHp, Math.max(1, result.remainingHp)) : 1, // Tử nạn ra ngoài còn đúng 1 HP
+        hp: Math.min(realm.baseHp, Math.max(1, result.remainingHp)),
         mp: Math.min(realm.baseMp, prev.mp),
         spiritStones: prev.spiritStones + result.spiritStonesGained,
         totalKills: prev.totalKills + result.monstersKilled,
@@ -192,7 +213,7 @@ export default function App() {
       spiritStonesGained: result.spiritStonesGained,
       monstersKilled: result.monstersKilled,
       survivalSeconds: result.survivalSeconds,
-      remainingHp: result.survived ? Math.max(1, result.remainingHp) : 1,
+      remainingHp: Math.max(1, result.remainingHp),
       lootItems: result.lootItems
     });
   };
@@ -268,18 +289,20 @@ export default function App() {
       const updatedList = prev.congPhapList.map((c) => {
         if (c.id === id) {
           const nextLevel = c.level + 1;
+          const nextTier = nextLevel;
           const nextCost = Math.round(c.upgradeCost * 1.8);
           let newDesc = c.effectDesc;
           if (c.id === 'van_kiem_quy_tong') {
-            newDesc = `${5 + nextLevel} Phi kiếm truy kích, ${100 + nextLevel * 25}% sát thương, tiêu tốn 50 MP/s`;
+            newDesc = `${10 + (nextTier - 1) * 5} Phi kiếm truy kích, ${100 + nextTier * 25}% sát thương, 10 MP/s (cap 30 kiếm)`;
           } else if (c.id === 'chan_nguyen_ho_the') {
-            newDesc = `Hào quang bảo hộ bán kính ${75 + nextLevel * 5}px, hấp thụ 100% sát thương vào MP 1:1`;
+            newDesc = `Hào quang bảo hộ bán kính 50px, quy đổi 1:${50 + (nextTier - 1) * 25} (1 MP giảm ${50 + (nextTier - 1) * 25} sát thương)`;
           } else if (c.id === 'vo_ha_han') {
-            newDesc = `Lĩnh vực không gian ${180 + nextLevel * 15}px, làm chậm quái từ 10% đến 99%, tiêu tốn 10 MP/s`;
+            newDesc = `Lĩnh vực không gian 300px (vùng 140px làm chậm 99%), tiêu tốn 5 MP/s`;
           }
           return {
             ...c,
             level: nextLevel,
+            tier: nextTier,
             upgradeCost: nextCost,
             effectDesc: newDesc
           };
@@ -290,6 +313,30 @@ export default function App() {
       return {
         ...prev,
         spiritStones: prev.spiritStones - cp.upgradeCost,
+        congPhapList: updatedList
+      };
+    });
+  };
+
+  // Action: Xóa / Phế Bỏ Công Pháp (Để khi mua lại up tầng từ đầu)
+  const handleDeleteCongPhap = (id: string) => {
+    setPlayer((prev) => {
+      const updatedList = prev.congPhapList.map((c) => {
+        if (c.id === id) {
+          const baseCost = c.id === 'van_kiem_quy_tong' ? 300 : c.id === 'chan_nguyen_ho_the' ? 250 : 400;
+          return {
+            ...c,
+            unlocked: false,
+            level: 1,
+            tier: 1,
+            equipped: false,
+            upgradeCost: baseCost
+          };
+        }
+        return c;
+      });
+      return {
+        ...prev,
         congPhapList: updatedList
       };
     });
@@ -311,6 +358,86 @@ export default function App() {
     });
   };
 
+  // Action: Trang Bị / Tháo Chí Bảo Trấn Tông (Tối đa 3 món)
+  const handleToggleEquipChiBao = (id: string) => {
+    setPlayer((prev) => {
+      const equipped = prev.equippedArtifactIds || [];
+      if (equipped.includes(id)) {
+        return {
+          ...prev,
+          equippedArtifactIds: equipped.filter((item) => item !== id)
+        };
+      } else {
+        if (equipped.length >= 3) {
+          alert('Chỉ có thể trang bị tối đa 3 Chí Bảo Trấn Tông cùng lúc!');
+          return prev;
+        }
+        return {
+          ...prev,
+          equippedArtifactIds: [...equipped, id]
+        };
+      }
+    });
+  };
+
+  // Action: Nâng Cấp Sao Chí Bảo Tụ Khí Đan
+  const handleUpgradeChiBaoStar = (id: string) => {
+    setPlayer((prev) => {
+      const list = prev.chiBaoList || [];
+      const cb = list.find((c) => c.id === id);
+      if (!cb || cb.star >= 5) return prev;
+      const cost = cb.star * 500;
+      if (prev.spiritStones < cost) {
+        alert(`Không đủ Linh Thạch! Cần ${cost} Linh Thạch.`);
+        return prev;
+      }
+      sound.playLevelUp();
+      return {
+        ...prev,
+        spiritStones: prev.spiritStones - cost,
+        chiBaoList: list.map((c) => (c.id === id ? { ...c, star: c.star + 1 } : c))
+      };
+    });
+  };
+
+  // Action: Trang Bị & Mua Trang Bị Lò Rèn
+  const handleEquipGear = (gear: EquipmentItem) => {
+    sound.playSwordSummon();
+    setPlayer((prev) => ({
+      ...prev,
+      equippedGear: {
+        ...prev.equippedGear,
+        [gear.slot]: gear
+      }
+    }));
+  };
+
+  const handleUnequipGear = (slot: 'weapon' | 'armor' | 'boots' | 'ring') => {
+    setPlayer((prev) => ({
+      ...prev,
+      equippedGear: {
+        ...prev.equippedGear,
+        [slot]: undefined
+      }
+    }));
+  };
+
+  const handleBuyEquipment = (gear: EquipmentItem) => {
+    if (player.spiritStones < gear.cost) {
+      alert(`Không đủ Linh Thạch! Cần ${gear.cost} Linh Thạch.`);
+      return;
+    }
+    sound.playLevelUp();
+    setPlayer((prev) => ({
+      ...prev,
+      spiritStones: prev.spiritStones - gear.cost,
+      equippedGear: {
+        ...prev.equippedGear,
+        [gear.slot]: gear
+      }
+    }));
+  };
+
   // Action: Sử dụng vật phẩm từ Túi Đồ
   const handleUseItem = (itemId: string) => {
     setPlayer((prev) => {
@@ -330,8 +457,9 @@ export default function App() {
       if (item.healHp) newHp = Math.min(prev.maxHp, newHp + item.healHp);
       if (item.healMp) newMp = Math.min(prev.maxMp, newMp + item.healMp);
       if (item.addExp) newExp += item.addExp;
-      if (item.reduceHunger) newHunger = Math.max(0, newHunger - item.reduceHunger);
-      if (item.reduceThirst) newThirst = Math.max(0, newThirst - item.reduceThirst);
+      // Đói và khát giảm về 0 nên khi dùng thức ăn/nước uống sẽ tăng trở lại giới hạn max
+      if (item.reduceHunger) newHunger = Math.min(prev.maxHunger, newHunger + item.reduceHunger);
+      if (item.reduceThirst) newThirst = Math.min(prev.maxThirst, newThirst + item.reduceThirst);
       if (item.addLifespan) newLifespan += item.addLifespan * 60;
 
       return {
@@ -658,7 +786,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Menu Điều Hướng (7 Mục hoàn chỉnh) */}
+          {/* Menu Điều Hướng (Đầy đủ theo yêu cầu) */}
           <nav className="space-y-1.5 pt-1">
             <button
               onClick={() => setActiveTab('dongphu')}
@@ -677,10 +805,43 @@ export default function App() {
               className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-rose-600/30 to-amber-600/30 text-rose-300 border border-rose-500/40 hover:from-rose-600/50 hover:to-amber-600/50 transition shadow-sm"
             >
               <Swords className="w-4 h-4 text-rose-400" />
-              <span>Bí Cảnh (Xuất Chiến)</span>
+              <span>Bí Cảnh (Xuất Chiến - 1 Năm)</span>
             </button>
 
-            {/* MỤC MỚI: CÔNG PHÁP */}
+            {/* MỤC MỚI: TRANG BỊ (TRÊN CÔNG PHÁP) */}
+            <button
+              onClick={() => setActiveTab('equipment')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition ${
+                activeTab === 'equipment'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
+                  : 'text-slate-300 hover:bg-slate-800/70'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Shield className="w-4 h-4 text-amber-400" />
+                <span>Trang Bị (Lò Rèn)</span>
+              </div>
+            </button>
+
+            {/* MỤC MỚI: CHÍ BẢO (TRÊN CÔNG PHÁP, 3 SLOT) */}
+            <button
+              onClick={() => setActiveTab('artifacts')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition ${
+                activeTab === 'artifacts'
+                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 shadow-sm'
+                  : 'text-slate-300 hover:bg-slate-800/70'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <span>Chí Bảo Trấn Tông</span>
+              </div>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-950 text-indigo-300 border border-indigo-500/40">
+                {player.equippedArtifactIds?.length || 0}/3
+              </span>
+            </button>
+
+            {/* CÔNG PHÁP */}
             <button
               onClick={() => setActiveTab('congphap')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition ${
@@ -695,6 +856,24 @@ export default function App() {
               </div>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-purple-950 text-purple-300 border border-purple-500/40">
                 {player.congPhapList.filter((c) => c.unlocked).length}
+              </span>
+            </button>
+
+            {/* MỤC MỚI: ĐỒ GIÁM YÊU THÚ (INDEX) */}
+            <button
+              onClick={() => setActiveTab('index')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-xs transition ${
+                activeTab === 'index'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
+                  : 'text-slate-300 hover:bg-slate-800/70'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Compass className="w-4 h-4 text-emerald-400" />
+                <span>Đồ Giám Yêu Thú</span>
+              </div>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-500/40">
+                8 Yêu Quái
               </span>
             </button>
 
@@ -765,7 +944,7 @@ export default function App() {
       </aside>
 
       {/* ==================================================== */}
-      {/* KHU VỰC NỘI DUNG CHÍNH (ĐỘNG PHỦ / CÔNG PHÁP / TÚI ĐỒ / CHỢ / TÔNG MÔN / THỜI TRANG) */}
+      {/* KHU VỰC NỘI DUNG CHÍNH (ĐỘNG PHỦ / TRANG BỊ / CHÍ BẢO / CÔNG PHÁP / INDEX / TÚI ĐỒ / CHỢ / TÔNG MÔN / THỜI TRANG) */}
       {/* ==================================================== */}
       <main className="flex-1 h-screen overflow-hidden flex flex-col bg-slate-950">
         {activeTab === 'dongphu' && (
@@ -779,12 +958,34 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'equipment' && (
+          <EquipmentView
+            player={player}
+            onEquip={handleEquipGear}
+            onUnequip={handleUnequipGear}
+            onBuyEquipment={handleBuyEquipment}
+          />
+        )}
+
+        {activeTab === 'artifacts' && (
+          <ChiBaoView
+            player={player}
+            onToggleEquip={handleToggleEquipChiBao}
+            onUpgradeStar={handleUpgradeChiBaoStar}
+          />
+        )}
+
         {activeTab === 'congphap' && (
           <CongPhapView
             player={player}
             onUpgradeCongPhap={handleUpgradeCongPhap}
             onToggleEquip={handleToggleEquipCongPhap}
+            onDeleteCongPhap={handleDeleteCongPhap}
           />
+        )}
+
+        {activeTab === 'index' && (
+          <IndexMonsterView />
         )}
 
         {activeTab === 'inventory' && (

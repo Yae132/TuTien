@@ -1,44 +1,45 @@
-import { RealmInfo, Item, FashionConfig, PlayerStats, CongPhap } from '../types/game';
+import { RealmInfo, Item, FashionConfig, PlayerStats, CongPhap, ChiBao } from '../types/game';
 
 export const REALMS: RealmInfo[] = [
-  { name: 'Luyện Khí Tầng 1', level: 1, baseHp: 100, baseMp: 60, baseAtk: 18, baseDef: 5, reqExp: 50, isMajor: false, lifespanReward: 5, maxHunger: 100, maxThirst: 100 },
-  { name: 'Luyện Khí Tầng 2', level: 2, baseHp: 130, baseMp: 75, baseAtk: 23, baseDef: 7, reqExp: 100, isMajor: false, lifespanReward: 5, maxHunger: 100, maxThirst: 100 },
-  { name: 'Luyện Khí Tầng 3', level: 3, baseHp: 170, baseMp: 95, baseAtk: 29, baseDef: 10, reqExp: 180, isMajor: false, lifespanReward: 5, maxHunger: 100, maxThirst: 100 },
-  { name: 'Luyện Khí Tầng 4', level: 4, baseHp: 220, baseMp: 120, baseAtk: 36, baseDef: 14, reqExp: 280, isMajor: false, lifespanReward: 5, maxHunger: 100, maxThirst: 100 },
-  { name: 'Luyện Khí Tầng 5', level: 5, baseHp: 280, baseMp: 150, baseAtk: 45, baseDef: 18, reqExp: 420, isMajor: false, lifespanReward: 10, maxHunger: 100, maxThirst: 100 },
-  { name: 'Luyện Khí Tầng 6', level: 6, baseHp: 350, baseMp: 190, baseAtk: 55, baseDef: 23, reqExp: 600, isMajor: false, lifespanReward: 10, maxHunger: 150, maxThirst: 150 },
-  { name: 'Luyện Khí Tầng 7', level: 7, baseHp: 440, baseMp: 240, baseAtk: 68, baseDef: 29, reqExp: 850, isMajor: false, lifespanReward: 10, maxHunger: 150, maxThirst: 150 },
-  { name: 'Luyện Khí Tầng 8', level: 8, baseHp: 550, baseMp: 300, baseAtk: 84, baseDef: 36, reqExp: 1200, isMajor: false, lifespanReward: 15, maxHunger: 150, maxThirst: 150 },
-  { name: 'Luyện Khí Tầng 9', level: 9, baseHp: 680, baseMp: 370, baseAtk: 102, baseDef: 45, reqExp: 1700, isMajor: false, lifespanReward: 15, maxHunger: 150, maxThirst: 150 },
-  { name: 'Luyện Khí Tầng 10 (Đỉnh Phong)', level: 10, baseHp: 850, baseMp: 450, baseAtk: 125, baseDef: 55, reqExp: 2400, isMajor: true, lifespanReward: 30, maxHunger: 150, maxThirst: 150 },
+  // Luyện Khí (10 Tầng): Bắt đầu 100 Tu Vi, mỗi tầng +50%, thưởng Thọ Nguyên từ 50 tăng dần
+  { name: 'Luyện Khí Tầng 1', level: 1, baseHp: 100, baseMp: 60, baseAtk: 18, baseDef: 5, reqExp: 100, isMajor: false, lifespanReward: 50, maxHunger: 100, maxThirst: 100 },
+  { name: 'Luyện Khí Tầng 2', level: 2, baseHp: 130, baseMp: 75, baseAtk: 23, baseDef: 7, reqExp: 150, isMajor: false, lifespanReward: 60, maxHunger: 100, maxThirst: 100 },
+  { name: 'Luyện Khí Tầng 3', level: 3, baseHp: 170, baseMp: 95, baseAtk: 29, baseDef: 10, reqExp: 225, isMajor: false, lifespanReward: 75, maxHunger: 100, maxThirst: 100 },
+  { name: 'Luyện Khí Tầng 4', level: 4, baseHp: 220, baseMp: 120, baseAtk: 36, baseDef: 14, reqExp: 338, isMajor: false, lifespanReward: 95, maxHunger: 100, maxThirst: 100 },
+  { name: 'Luyện Khí Tầng 5', level: 5, baseHp: 280, baseMp: 150, baseAtk: 45, baseDef: 18, reqExp: 506, isMajor: false, lifespanReward: 120, maxHunger: 100, maxThirst: 100 },
+  { name: 'Luyện Khí Tầng 6', level: 6, baseHp: 350, baseMp: 190, baseAtk: 55, baseDef: 23, reqExp: 759, isMajor: false, lifespanReward: 150, maxHunger: 150, maxThirst: 150 },
+  { name: 'Luyện Khí Tầng 7', level: 7, baseHp: 440, baseMp: 240, baseAtk: 68, baseDef: 29, reqExp: 1139, isMajor: false, lifespanReward: 190, maxHunger: 150, maxThirst: 150 },
+  { name: 'Luyện Khí Tầng 8', level: 8, baseHp: 550, baseMp: 300, baseAtk: 84, baseDef: 36, reqExp: 1709, isMajor: false, lifespanReward: 240, maxHunger: 150, maxThirst: 150 },
+  { name: 'Luyện Khí Tầng 9', level: 9, baseHp: 680, baseMp: 370, baseAtk: 102, baseDef: 45, reqExp: 2563, isMajor: false, lifespanReward: 300, maxHunger: 150, maxThirst: 150 },
+  { name: 'Luyện Khí Tầng 10 (Đỉnh Phong)', level: 10, baseHp: 850, baseMp: 450, baseAtk: 125, baseDef: 55, reqExp: 3844, isMajor: true, lifespanReward: 400, maxHunger: 150, maxThirst: 150 },
   
   // Trúc Cơ - Đại Cảnh Giới
-  { name: 'Trúc Cơ Sơ Kỳ', subStage: 'Trúc Cơ', level: 11, baseHp: 1200, baseMp: 650, baseAtk: 180, baseDef: 80, reqExp: 3800, isMajor: false, lifespanReward: 50, maxHunger: 220, maxThirst: 220 },
-  { name: 'Trúc Cơ Trung Kỳ', subStage: 'Trúc Cơ', level: 12, baseHp: 1600, baseMp: 850, baseAtk: 240, baseDef: 110, reqExp: 5800, isMajor: false, lifespanReward: 50, maxHunger: 220, maxThirst: 220 },
-  { name: 'Trúc Cơ Hậu Kỳ', subStage: 'Trúc Cơ', level: 13, baseHp: 2200, baseMp: 1150, baseAtk: 320, baseDef: 150, reqExp: 8500, isMajor: false, lifespanReward: 60, maxHunger: 220, maxThirst: 220 },
-  { name: 'Trúc Cơ Viên Mãn', subStage: 'Trúc Cơ', level: 14, baseHp: 3000, baseMp: 1550, baseAtk: 430, baseDef: 200, reqExp: 12500, isMajor: true, lifespanReward: 80, maxHunger: 220, maxThirst: 220 },
+  { name: 'Trúc Cơ Sơ Kỳ', subStage: 'Trúc Cơ', level: 11, baseHp: 1200, baseMp: 650, baseAtk: 180, baseDef: 80, reqExp: 5766, isMajor: false, lifespanReward: 500, maxHunger: 220, maxThirst: 220 },
+  { name: 'Trúc Cơ Trung Kỳ', subStage: 'Trúc Cơ', level: 12, baseHp: 1600, baseMp: 850, baseAtk: 240, baseDef: 110, reqExp: 8649, isMajor: false, lifespanReward: 650, maxHunger: 220, maxThirst: 220 },
+  { name: 'Trúc Cơ Hậu Kỳ', subStage: 'Trúc Cơ', level: 13, baseHp: 2200, baseMp: 1150, baseAtk: 320, baseDef: 150, reqExp: 12974, isMajor: false, lifespanReward: 800, maxHunger: 220, maxThirst: 220 },
+  { name: 'Trúc Cơ Viên Mãn', subStage: 'Trúc Cơ', level: 14, baseHp: 3000, baseMp: 1550, baseAtk: 430, baseDef: 200, reqExp: 19460, isMajor: true, lifespanReward: 1000, maxHunger: 220, maxThirst: 220 },
 
   // Kim Đan
-  { name: 'Kim Đan Sơ Kỳ', subStage: 'Kim Đan', level: 15, baseHp: 4200, baseMp: 2200, baseAtk: 600, baseDef: 280, reqExp: 18000, isMajor: false, lifespanReward: 120, maxHunger: 350, maxThirst: 350 },
-  { name: 'Kim Đan Trung Kỳ', subStage: 'Kim Đan', level: 16, baseHp: 5800, baseMp: 3000, baseAtk: 820, baseDef: 380, reqExp: 26000, isMajor: false, lifespanReward: 140, maxHunger: 350, maxThirst: 350 },
-  { name: 'Kim Đan Hậu Kỳ', subStage: 'Kim Đan', level: 17, baseHp: 8000, baseMp: 4100, baseAtk: 1100, baseDef: 520, reqExp: 37000, isMajor: false, lifespanReward: 160, maxHunger: 350, maxThirst: 350 },
-  { name: 'Kim Đan Viên Mãn', subStage: 'Kim Đan', level: 18, baseHp: 11000, baseMp: 5600, baseAtk: 1500, baseDef: 700, reqExp: 52000, isMajor: true, lifespanReward: 200, maxHunger: 350, maxThirst: 350 },
+  { name: 'Kim Đan Sơ Kỳ', subStage: 'Kim Đan', level: 15, baseHp: 4200, baseMp: 2200, baseAtk: 600, baseDef: 280, reqExp: 29190, isMajor: false, lifespanReward: 1300, maxHunger: 350, maxThirst: 350 },
+  { name: 'Kim Đan Trung Kỳ', subStage: 'Kim Đan', level: 16, baseHp: 5800, baseMp: 3000, baseAtk: 820, baseDef: 380, reqExp: 43785, isMajor: false, lifespanReward: 1600, maxHunger: 350, maxThirst: 350 },
+  { name: 'Kim Đan Hậu Kỳ', subStage: 'Kim Đan', level: 17, baseHp: 8000, baseMp: 4100, baseAtk: 1100, baseDef: 520, reqExp: 65678, isMajor: false, lifespanReward: 2000, maxHunger: 350, maxThirst: 350 },
+  { name: 'Kim Đan Viên Mãn', subStage: 'Kim Đan', level: 18, baseHp: 11000, baseMp: 5600, baseAtk: 1500, baseDef: 700, reqExp: 98517, isMajor: true, lifespanReward: 2500, maxHunger: 350, maxThirst: 350 },
 
   // Nguyên Anh
-  { name: 'Nguyên Anh Sơ Kỳ', subStage: 'Nguyên Anh', level: 19, baseHp: 16000, baseMp: 8200, baseAtk: 2200, baseDef: 980, reqExp: 75000, isMajor: false, lifespanReward: 300, maxHunger: 500, maxThirst: 500 },
-  { name: 'Hóa Thần Đỉnh Phong', subStage: 'Hóa Thần', level: 20, baseHp: 25000, baseMp: 13000, baseAtk: 3300, baseDef: 1500, reqExp: 120000, isMajor: false, lifespanReward: 500, maxHunger: 500, maxThirst: 500 }
+  { name: 'Nguyên Anh Sơ Kỳ', subStage: 'Nguyên Anh', level: 19, baseHp: 16000, baseMp: 8200, baseAtk: 2200, baseDef: 980, reqExp: 147775, isMajor: false, lifespanReward: 3500, maxHunger: 500, maxThirst: 500 },
+  { name: 'Hóa Thần Đỉnh Phong', subStage: 'Hóa Thần', level: 20, baseHp: 25000, baseMp: 13000, baseAtk: 3300, baseDef: 1500, reqExp: 221663, isMajor: false, lifespanReward: 5000, maxHunger: 500, maxThirst: 500 }
 ];
 
 export const DEFAULT_CONG_PHAP_LIST: CongPhap[] = [
   {
     id: 'van_kiem_quy_tong',
     name: 'Vạn Kiếm Quy Tông',
-    desc: 'Bí pháp kiếm đạo chí cao. Khi kích hoạt tiêu tốn 10 Chân Nguyên mỗi giây, liên tục triệu hồi 10 phi kiếm bay quanh người tự động truy sát quái vật ở gần, va chạm kẻ địch sẽ gây sát thương bạo liệt rồi biến mất.',
+    desc: 'Bí pháp kiếm đạo chí cao. Khi kích hoạt tiêu tốn 10 Chân Nguyên mỗi giây, liên tục triệu hồi phi kiếm bay quanh người tự động truy sát quái vật ở gần (tối đa tích trữ 30 thanh kiếm, khi đủ 30 thanh sẽ ngừng trừ MP). Va chạm kẻ địch gây sát thương rồi biến mất.',
     level: 1,
     maxLevel: 5,
     mpCostPerSec: 10,
     upgradeCost: 250,
-    effectDesc: '10 Phi kiếm mỗi giây, tiêu tốn 10 MP/s',
+    effectDesc: 'Tầng 1: 10 Phi kiếm/s, 125% sát thương, tiêu tốn 10 MP/s (ngưng khi đủ 30 kiếm)',
     unlocked: true,
     equipped: true,
     hotkey: 'Q',
@@ -47,12 +48,12 @@ export const DEFAULT_CONG_PHAP_LIST: CongPhap[] = [
   {
     id: 'chan_nguyen_ho_the',
     name: 'Chân Nguyên Hộ Thể',
-    desc: 'Ngưng tụ Chân Nguyên tạo thành vòng kim quang hộ thể bán kính 100px. Ngăn chặn mọi kẻ địch tiến vào, quái vật chạm hoặc tấn công tầm xa sẽ tiêu hao trực tiếp Chân Nguyên làm độ bền khiên theo quy đổi 1:50 (cứ 1 Chân Nguyên giảm 50 sát thương). Khi Chân Nguyên cạn kiệt, khiên sẽ tan biến.',
+    desc: 'Ngưng tụ Chân Nguyên tạo thành vòng kim quang hộ thể bán kính 50px. Ngăn chặn mọi kẻ địch tiến vào, quái vật chạm hoặc tấn công tầm xa sẽ tiêu hao trực tiếp Chân Nguyên làm độ bền khiên theo tỉ lệ quy đổi (Tầng 1 là 1:50, Tầng 2 là 1:75,...). Khi Chân Nguyên cạn kiệt, khiên sẽ tan biến.',
     level: 1,
     maxLevel: 5,
     mpCostPerSec: 0,
     upgradeCost: 350,
-    effectDesc: 'Hào quang bảo hộ bán kính 100px, quy đổi 1:50 (1 MP giảm 50 sát thương)',
+    effectDesc: 'Tầng 1: Hào quang bảo vệ bán kính 50px, quy đổi 1:50 (1 MP giảm 50 sát thương)',
     unlocked: true,
     equipped: true,
     hotkey: 'E',
@@ -61,16 +62,71 @@ export const DEFAULT_CONG_PHAP_LIST: CongPhap[] = [
   {
     id: 'vo_ha_han',
     name: 'Vô Hạ Hạn (Gojo)',
-    desc: 'Vận chuyển không gian bí thuật tạo ra một lĩnh vực vô hạn quanh thân bán kính 300px. Tiêu tốn 10 Chân Nguyên mỗi giây, toàn bộ kẻ địch cũng như đòn tấn công tầm xa bước vào sẽ bị bóp méo không gian, giảm tốc độ di chuyển từ 10% ở rìa lên đến 99% khi áp sát nhân vật (gần như đông cứng hoàn toàn).',
+    desc: 'Vận chuyển không gian bí thuật tạo ra một lĩnh vực vô hạn quanh thân bán kính 300px. Tiêu tốn 5 Chân Nguyên mỗi giây. Toàn bộ kẻ địch và đòn tấn công tầm xa bước vào sẽ bị bóp méo không gian: trong bán kính 140px giảm tới 99% tốc độ (gần như đông cứng hoàn toàn), từ 140px đến 300px giảm từ 99% đến 10%.',
     level: 1,
     maxLevel: 5,
-    mpCostPerSec: 10,
+    mpCostPerSec: 5,
     upgradeCost: 400,
-    effectDesc: 'Lĩnh vực không gian 300px, giảm tốc toàn bộ quái và đạn tầm xa từ 10% đến 99%, tiêu hao 10 MP/s',
+    effectDesc: 'Tầng 1: Lĩnh vực 300px (140px chậm 99%), tiêu hao 5 MP/s',
     unlocked: true,
     equipped: true,
     hotkey: 'R',
     icon: 'Zap'
+  }
+];
+
+export const DEFAULT_CHI_BAO_LIST: ChiBao[] = [
+  {
+    id: 'tu_khi_dan',
+    name: 'Cực Phẩm Tụ Khí Đan',
+    desc: 'Chí bảo đan đạo vĩnh cửu. Gia tăng vĩnh viễn +1 Tu Vi mỗi giây khi tọa thiền tại Động Phủ. Có thể nâng cấp tối đa lên 5 sao bằng Linh Thạch.',
+    icon: 'Sparkles',
+    unlocked: true,
+    equipped: true,
+    stars: 1,
+    maxStars: 5,
+    starUpgradeCost: 200,
+    contributionCost: 80,
+    effectDesc: '+1 Tu Vi/s khi tọa thiền (1 Sao)'
+  },
+  {
+    id: 'niet_ban_phuong_vu',
+    name: 'Niết Bàn Phượng Vũ',
+    desc: 'Lông vũ Phượng Hoàng niết bàn. Ban cho chủ nhân 1 mạng phụ: Khi Khí Huyết hoặc Thọ Nguyên về 0, bảo vật hồi sinh nhân vật thay vì tử trận chơi lại từ đầu toàn bộ, hồi phục 50% Khí Huyết và 50% Chân Nguyên (chỉ dùng được 1 lần mỗi 10 phút).',
+    icon: 'Flame',
+    unlocked: true,
+    equipped: true,
+    stars: 1,
+    maxStars: 1,
+    starUpgradeCost: 0,
+    contributionCost: 150,
+    effectDesc: '1 Mạng phụ: Hồi sinh 50% HP & MP khi chết (Hồi chiêu 10 phút)'
+  },
+  {
+    id: 'huyet_tinh_ma_binh',
+    name: 'Huyết Tinh Ma Bình',
+    desc: 'Bảo bình cổ xưa luyện từ huyết tinh ma đạo. Mỗi khi thanh phi kiếm tiêu diệt 1 quái vật trong Bí Cảnh, hút ngược 1% Khí Huyết tối đa về cho nhân vật, giải quyết bài toán thiếu hụt máu khi chiến đấu lâu.',
+    icon: 'Heart',
+    unlocked: true,
+    equipped: true,
+    stars: 1,
+    maxStars: 1,
+    starUpgradeCost: 0,
+    contributionCost: 120,
+    effectDesc: 'Phi kiếm trảm quái hút ngược 1% Max HP'
+  },
+  {
+    id: 'bich_hai_linh_ho',
+    name: 'Bích Hải Linh Hồ',
+    desc: 'Hồ lô ngọc bích tích tụ linh tuyền biển sâu. Mỗi khi thanh phi kiếm tiêu diệt 1 quái vật trong Bí Cảnh, hấp thụ 1% Chân Nguyên tối đa về cho nhân vật, giải quyết vấn đề thiếu hụt chân nguyên.',
+    icon: 'Droplet',
+    unlocked: false,
+    equipped: false,
+    stars: 1,
+    maxStars: 1,
+    starUpgradeCost: 0,
+    contributionCost: 120,
+    effectDesc: 'Phi kiếm trảm quái hấp thụ 1% Max MP'
   }
 ];
 
@@ -245,14 +301,17 @@ export const INITIAL_PLAYER: PlayerStats = {
   critRate: 0.12,
   critDmg: 1.5,
   lifespanSeconds: 6000, // 100 phút
-  hunger: 10,
+  hunger: 100, // No bụng (100 -> 0 đói lả)
   maxHunger: 100,
-  thirst: 10,
+  thirst: 100, // Đủ nước (100 -> 0 khát khô)
   maxThirst: 100,
   spiritStones: 150,
   sectContributionPoints: 160,
   hasUnlockedVanKiem: true,
   congPhapList: DEFAULT_CONG_PHAP_LIST,
+  chiBaoList: DEFAULT_CHI_BAO_LIST,
+  equippedArtifactIds: ['tu_khi_dan', 'niet_ban_phuong_vu', 'huyet_tinh_ma_binh'],
+  phoenixReviveCooldownSeconds: 0,
   isMeditating: false,
   fashion: DEFAULT_FASHION,
   inventory: [
@@ -406,7 +465,7 @@ export interface SectShopItem {
   id: string;
   name: string;
   desc: string;
-  category: 'cong_phap' | 'cong_thuc';
+  category: 'cong_phap' | 'chi_bao';
   costContribution: number;
   icon: string;
   oneTime?: boolean;
@@ -414,11 +473,11 @@ export interface SectShopItem {
 }
 
 export const SECT_SHOP_ITEMS: SectShopItem[] = [
-  // MỤC 1: CÔNG PHÁP
+  // MỤC 1: BÍ KÍP CÔNG PHÁP
   {
     id: 'skill_van_kiem',
     name: 'Bí Kíp: Vạn Kiếm Quy Tông',
-    desc: 'Bí pháp trấn môn! Kích hoạt (phím Q) tốn 50 Chân Nguyên/s, triệu hồi 5 phi kiếm bay quanh người tự động truy quét quái vật, biến mất khi chạm trúng.',
+    desc: 'Lĩnh ngộ kiếm quyết tối thượng (phím Q). Triệu hồi phi kiếm tự động truy kích quái vật, gây sát thương bạo liệt.',
     category: 'cong_phap',
     costContribution: 80,
     icon: 'Swords',
@@ -441,7 +500,7 @@ export const SECT_SHOP_ITEMS: SectShopItem[] = [
   {
     id: 'skill_chan_nguyen_ho_the',
     name: 'Bí Kíp: Chân Nguyên Hộ Thể',
-    desc: 'Tạo hào quang hộ thể kim quang. Ngăn chặn quái vật áp sát, nhận đòn đánh sẽ trừ thẳng Chân Nguyên làm độ bền khiên theo tỉ lệ 1:1!',
+    desc: 'Tạo hào quang hộ thể kim quang bán kính 50px (phím E). Ngăn chặn quái vật áp sát, tiêu hao Chân Nguyên làm độ bền khiên.',
     category: 'cong_phap',
     costContribution: 90,
     icon: 'Shield',
@@ -463,8 +522,8 @@ export const SECT_SHOP_ITEMS: SectShopItem[] = [
   },
   {
     id: 'skill_vo_ha_han',
-    name: 'Bí Kíp: Vô Hạ Hạn',
-    desc: 'Tuyệt kỹ bóp méo không gian (phím R). Tốn 10 Chân Nguyên/s, làm chậm quái vật từ 10% ở rìa đến 99% khi áp sát nhân vật (gần như bất động).',
+    name: 'Bí Kíp: Vô Hạ Hạn (Gojo)',
+    desc: 'Tuyệt kỹ bóp méo không gian 300px (phím R). Tốn 5 Chân Nguyên/s, làm chậm quái vật và đạn tầm xa (trong 140px chậm tới 99%).',
     category: 'cong_phap',
     costContribution: 100,
     icon: 'Zap',
@@ -485,106 +544,258 @@ export const SECT_SHOP_ITEMS: SectShopItem[] = [
     }
   },
 
-  // MỤC 2: CÔNG THỨC & ĐAN DƯỢC
+  // MỤC 2: CHÍ BẢO TRẤN TÔNG (Cho phép mang theo 3 chí bảo cùng lúc)
   {
-    id: 'recipe_bich_huyet_sword',
-    name: 'Công Thức: Rèn Kiếm Bích Huyết',
-    desc: 'Bí truyền luyện kiếm sắc bén, tăng vĩnh viễn +30 Sát Thương Công Kích (Atk).',
-    category: 'cong_thuc',
-    costContribution: 75,
-    icon: 'Hammer',
-    oneTime: true,
-    effect: (p) => {
-      return {
-        success: true,
-        message: 'Tôi luyện thành công Kiếm Bích Huyết! Tăng vĩnh viễn +30 Sát thương.',
-        updatedPlayer: { ...p, atk: p.atk + 30 }
-      };
-    }
-  },
-  {
-    id: 'recipe_thien_tam_giap',
-    name: 'Công Thức: Dệt Giáp Thiên Tằm',
-    desc: 'Bí truyền dệt thiên tằm bảo y, tăng vĩnh viễn +18 Điểm Phòng Ngự (Def).',
-    category: 'cong_thuc',
-    costContribution: 75,
-    icon: 'Shield',
-    oneTime: true,
-    effect: (p) => {
-      return {
-        success: true,
-        message: 'Dệt thành công Thiên Tằm Bảo Y! Tăng vĩnh viễn +18 Phòng ngự.',
-        updatedPlayer: { ...p, def: p.def + 18 }
-      };
-    }
-  },
-  {
-    id: 'pill_dai_hoan',
-    name: 'Thần Đan: Đại Hoàn Đan Trấn Tông',
-    desc: 'Hồi phục lập tức 100% Khí Huyết và Chân Nguyên khi sử dụng.',
-    category: 'cong_thuc',
-    costContribution: 60,
-    icon: 'Heart',
-    effect: (p) => {
-      return {
-        success: true,
-        message: 'Đã nhận 1 viên Đại Hoàn Đan vào túi đồ!',
-        updatedPlayer: {
-          ...p,
-          inventory: [
-            ...p.inventory,
-            {
-              id: 'pill_daihoan_' + Date.now(),
-              name: 'Đại Hoàn Đan Trấn Tông',
-              desc: 'Hồi phục toàn bộ 100% Khí Huyết và Chân Nguyên ngay lập tức.',
-              type: 'pill',
-              quality: 'legendary',
-              count: 1,
-              icon: 'heart-pulse',
-              healHp: p.maxHp,
-              healMp: p.maxMp,
-              price: 150
-            }
-          ]
-        }
-      };
-    }
-  },
-  {
-    id: 'pill_tukhi_permanent',
-    name: 'Thần Đan: Cực Phẩm Tụ Khí Đan',
-    desc: 'Gia tăng vĩnh viễn +2 Tu Vi mỗi giây khi tọa thiền tại Động Phủ!',
-    category: 'cong_thuc',
-    costContribution: 90,
+    id: 'chibao_tu_khi_dan',
+    name: 'Chí Bảo: Cực Phẩm Tụ Khí Đan',
+    desc: 'Gia tăng vĩnh viễn +1 Tu Vi mỗi giây khi tọa thiền tại Động Phủ. Có thể nâng cấp tối đa 5 sao bằng Linh Thạch.',
+    category: 'chi_bao',
+    costContribution: 80,
     icon: 'Sparkles',
+    oneTime: true,
     effect: (p) => {
+      const updated = p.chiBaoList.map((cb) => (cb.id === 'tu_khi_dan' ? { ...cb, unlocked: true } : cb));
       return {
         success: true,
-        message: 'Kinh mạch thông suốt! Tốc độ tọa thiền tăng vĩnh viễn +2 điểm/giây.',
-        updatedPlayer: {
-          ...p,
-          cultivationSpeedBonus: p.cultivationSpeedBonus + 2
-        }
+        message: 'Đã sở hữu Chí Bảo Cực Phẩm Tụ Khí Đan! Vào mục Chí Bảo để nâng sao và trang bị.',
+        updatedPlayer: { ...p, chiBaoList: updated }
       };
     }
   },
   {
-    id: 'pill_tho_nguyen_sect',
-    name: 'Thần Đan: Bổ Thọ Thiên Đan',
-    desc: 'Cải tử hoàn đồng, tăng trực tiếp +30 Năm Thọ Nguyên (30 phút)!',
-    category: 'cong_thuc',
-    costContribution: 110,
-    icon: 'Hourglass',
+    id: 'chibao_niet_ban',
+    name: 'Chí Bảo: Niết Bàn Phượng Vũ',
+    desc: 'Ban cho một mạng phụ: Khi Khí Huyết hoặc Thọ Nguyên về 0, hồi sinh nhân vật với 50% HP và 50% MP (Hồi chiêu 10 phút).',
+    category: 'chi_bao',
+    costContribution: 150,
+    icon: 'Flame',
+    oneTime: true,
     effect: (p) => {
+      const updated = p.chiBaoList.map((cb) => (cb.id === 'niet_ban_phuong_vu' ? { ...cb, unlocked: true } : cb));
       return {
         success: true,
-        message: 'Uống Bổ Thọ Thiên Đan! Thọ nguyên gia tăng thêm 30 năm.',
-        updatedPlayer: {
-          ...p,
-          lifespanSeconds: p.lifespanSeconds + 30 * 60
-        }
+        message: 'Đã sở hữu Chí Bảo Niết Bàn Phượng Vũ! Mang theo bên mình để nhận 1 mạng phụ bảo mệnh.',
+        updatedPlayer: { ...p, chiBaoList: updated }
       };
     }
+  },
+  {
+    id: 'chibao_huyet_tinh',
+    name: 'Chí Bảo: Huyết Tinh Ma Bình',
+    desc: 'Mỗi khi thanh phi kiếm tiêu diệt 1 quái vật trong Bí Cảnh, hút ngược 1% Khí Huyết tối đa về cho nhân vật.',
+    category: 'chi_bao',
+    costContribution: 120,
+    icon: 'Heart',
+    oneTime: true,
+    effect: (p) => {
+      const updated = p.chiBaoList.map((cb) => (cb.id === 'huyet_tinh_ma_binh' ? { ...cb, unlocked: true } : cb));
+      return {
+        success: true,
+        message: 'Đã sở hữu Chí Bảo Huyết Tinh Ma Bình! Hút máu khi kiếm diệt quái.',
+        updatedPlayer: { ...p, chiBaoList: updated }
+      };
+    }
+  },
+  {
+    id: 'chibao_bich_hai',
+    name: 'Chí Bảo: Bích Hải Linh Hồ',
+    desc: 'Mỗi khi thanh phi kiếm tiêu diệt 1 quái vật trong Bí Cảnh, hấp thụ 1% Chân Nguyên tối đa về cho nhân vật.',
+    category: 'chi_bao',
+    costContribution: 120,
+    icon: 'Droplet',
+    oneTime: true,
+    effect: (p) => {
+      const updated = p.chiBaoList.map((cb) => (cb.id === 'bich_hai_linh_ho' ? { ...cb, unlocked: true } : cb));
+      return {
+        success: true,
+        message: 'Đã sở hữu Chí Bảo Bích Hải Linh Hồ! Hồi phục MP khi kiếm diệt quái.',
+        updatedPlayer: { ...p, chiBaoList: updated }
+      };
+    }
+  }
+];
+
+export interface MonsterIndexItem {
+  id: string;
+  name: string;
+  type: string;
+  avatarColor: string;
+  accentColor: string;
+  hp: string;
+  atk: string;
+  attackInterval: string;
+  moveSpeed: string;
+  rangeType: 'Cận Chiến' | 'Tầm Xa' | 'Lướt / Đột Kích' | 'Phòng Ngự / Phản Đòn';
+  skills: string;
+  drops: string;
+  desc: string;
+}
+
+export const MONSTER_INDEX_DATA: MonsterIndexItem[] = [
+  {
+    id: 'slime',
+    name: 'Slime Linh Khí (Linh Thạch Thạch)',
+    type: 'Bầy đàn (Swarm)',
+    avatarColor: '#10b981',
+    accentColor: '#4ade80',
+    hp: '40 (+20/phút sinh tồn)',
+    atk: '8 (+3/phút)',
+    attackInterval: '1.0s (Cắn cận chiến)',
+    moveSpeed: '65 - 80 (Chậm)',
+    rangeType: 'Cận Chiến',
+    skills: 'Nhảy tưng tưng theo đàn, số lượng cực đông để người chơi "dọn cỏ" thu thập linh thạch.',
+    drops: '1 Linh Thạch (100%), Linh Dịch Trục Cơ, Vụn Linh Thạch',
+    desc: 'Cục thạch núng nính màu xanh ngọc bích mọc mầm lá trên đầu, mắt hạt tiêu tròn xoe hiền lành nhưng cắn buốt.'
+  },
+  {
+    id: 'rabbit',
+    name: 'Thỏ Ma Tinh Tinh (Thỏ Yêu Bông)',
+    type: 'Bầy đàn cơ động (Fast Swarm)',
+    avatarColor: '#785b65',
+    accentColor: '#ef4444',
+    hp: '50 (+20/phút)',
+    atk: '11 (+3/phút)',
+    attackInterval: '0.85s (Vồ cắn nhanh)',
+    moveSpeed: '135 (Nhanh gấp đôi Slime)',
+    rangeType: 'Cận Chiến',
+    skills: 'Đôi cánh dơi vỗ liên hồi, phi thân lao thẳng vào người chơi với tốc độ cao, mắt phát sáng đỏ rực.',
+    drops: '1 Linh Thạch (100%), Lông Thỏ Yêu',
+    desc: 'Thân hình tròn vo lông nâu đậm mềm mượt, đầu có cặp sừng ác ma nhỏ và cánh dơi đen hung hãn.'
+  },
+  {
+    id: 'mushroom',
+    name: 'Nấm Độc Mũ Đỏ (Hắc Bào Nấm)',
+    type: 'Đấu sĩ tầm xa (Ranged Caster)',
+    avatarColor: '#dc2626',
+    accentColor: '#ffffff',
+    hp: '65 (+20/phút)',
+    atk: '12 (+3/phút)',
+    attackInterval: '2.4s (Chu kỳ phóng đạn)',
+    moveSpeed: '70 (Vừa phải)',
+    rangeType: 'Tầm Xa',
+    skills: 'Giữ cự ly 160-260px và liên tục bắn Bào Tử Độc màu tím về phía nhân vật.',
+    drops: '1 Linh Thạch (100%), Bào Tử Độc',
+    desc: 'Cây nấm lùn mũ đỏ chấm bi trắng tinh nghịch, luôn lùi lại giữ khoảng cách an toàn để xả đạn độc.'
+  },
+  {
+    id: 'bat',
+    name: 'Dơi Củ Tỏi (Dơi Tiên Nhí)',
+    type: 'Cơ động bay lượn (Aerial Skirmisher)',
+    avatarColor: '#c084fc',
+    accentColor: '#7c3aed',
+    hp: '70 (+25/phút)',
+    atk: '14 (+3/phút)',
+    attackInterval: '2.8s (Bắn sóng âm)',
+    moveSpeed: '125 (Bay lượn hình sin)',
+    rangeType: 'Tầm Xa',
+    skills: 'Bay lượn uốn lượn hình sin khó đoán, há miệng bắn chùm Sóng Âm Dạ Quang màu tím đậm.',
+    drops: '1 Linh Thạch (100%), Cánh Dơi Dạ Quang',
+    desc: 'Dơi nhỏ tròn xoe như củ tỏi, cánh dơi mỏng phát huỳnh quang tím ma mị.'
+  },
+  {
+    id: 'bamboo',
+    name: 'Tiểu Trúc Yêu (Búp Măng Đột Biến)',
+    type: 'Sát thủ lướt tới (Dasher)',
+    avatarColor: '#84cc16',
+    accentColor: '#ef4444',
+    hp: '95 (+30/phút)',
+    atk: '15 (+4/phút)',
+    attackInterval: '0.9s (Húc càn sau lướt)',
+    moveSpeed: '90 (Bình thường) -> 225 (Lướt bộc phá)',
+    rangeType: 'Lướt / Đột Kích',
+    skills: 'Nhảy lướt càn quét (Dash burst gấp 2.5 lần tốc độ) lao thẳng vào mục tiêu, sau đó dừng nghỉ tích lực 1.2s.',
+    drops: '1 Linh Thạch (100%), Trúc Tinh Thiết',
+    desc: 'Búp măng xanh ngọc có 2 mắt tròn xoe, thân bọc các bẹ măng cứng như thép huyền thiết.'
+  },
+  {
+    id: 'turtle',
+    name: 'Rùa Đá Cổ Thụ (Thạch Quy)',
+    type: 'Hộ vệ thiết giáp (Heavy Tanker)',
+    avatarColor: '#64748b',
+    accentColor: '#22d3ee',
+    hp: '220 (+70/phút)',
+    atk: '18 (+4/phút)',
+    attackInterval: '1.2s (Đập đá)',
+    moveSpeed: '45 (Rất chậm)',
+    rangeType: 'Phòng Ngự / Phản Đòn',
+    skills: 'Mai Rùa Hộ Thể: Khi HP tụt dưới 55%, tự động kích hoạt mai đá khắc cổ phù, giảm ngay 70% toàn bộ sát thương nhận vào.',
+    drops: '1 Linh Thạch (100%), Giáp Quy Vụn',
+    desc: 'Mai rùa phủ đầy rêu phong và đá tảng, trên đỉnh mọc mầm cây xanh, bốn chân khắc phù văn cổ đại phát sáng xanh ngọc.'
+  },
+  {
+    id: 'fox',
+    name: 'Cáo Chín Đuôi Mini (Hồ Ly Bông)',
+    type: 'Tinh Anh phép thuật (Elite Caster)',
+    avatarColor: '#f97316',
+    accentColor: '#fdba74',
+    hp: '260 (+80/phút)',
+    atk: '22 (+5/phút)',
+    attackInterval: '3.2s (Bắn 3 luồng Hồ Hỏa)',
+    moveSpeed: '95 (Khá nhanh)',
+    rangeType: 'Tầm Xa',
+    skills: 'Bắn 3 luồng đạn Hồ Hỏa màu lam biếc tỏa hình rẻ quạt cùng lúc, uy lực sát thương diện rộng cực kỳ nguy hiểm.',
+    drops: '1 Linh Thạch (100%), Hạt Hồ Hỏa, Rương Tinh Anh',
+    desc: 'Hồ ly tròn xoe như cục bông cam rực rỡ, 9 chiếc đuôi xòe như quạt lông vũ mềm mại.'
+  },
+  {
+    id: 'boar',
+    name: 'Heo Rừng Kim Giáp (Mini-Boss)',
+    type: 'Thủ lĩnh húc càn (Elite Juggernaut)',
+    avatarColor: '#eab308',
+    accentColor: '#ca8a04',
+    hp: '380 (+100/phút)',
+    atk: '28 (+6/phút)',
+    attackInterval: '1.2s (Húc nghiền nát)',
+    moveSpeed: '80 (Bình thường) -> 360 (Húc càn cực đại)',
+    rangeType: 'Lướt / Đột Kích',
+    skills: 'Húc Càn Kim Giáp: Hiện vạch chỉ hướng màu đỏ cảnh báo trong 0.8s, sau đó kích hoạt động lượng cực đại lao vút tới 360px.',
+    drops: '1 Linh Thạch (100%), Kim Giáp Toái Phiến, Thịt Heo Rừng Nướng Linh Chi',
+    desc: 'Chú heo rừng lông vàng kim óng ả, mặc giáp trụ đồng điêu khắc hoa văn vân mây vương giả, hai chiếc nanh trắng cong vút.'
+  }
+];
+
+export const DEFAULT_EQUIPMENT_LIST: Item[] = [
+  {
+    id: 'eq_sword_1',
+    name: 'Thanh Phong Kiếm (Hạ Phẩm)',
+    desc: 'Thanh kiếm trúc rèn bằng linh thiết mỏng nhẹ, tăng +15 Sát Thương Công Kích.',
+    type: 'equipment',
+    quality: 'common',
+    count: 1,
+    icon: 'swords',
+    addAtk: 15,
+    price: 80
+  },
+  {
+    id: 'eq_armor_1',
+    name: 'Huyền Thiết Đạo Bào (Trung Phẩm)',
+    desc: 'Áo choàng đạo gia gia cố sợi tơ huyền thiết, tăng +12 Phòng Ngự và +50 Khí Huyết Tối Đa.',
+    type: 'equipment',
+    quality: 'rare',
+    count: 1,
+    icon: 'shield',
+    healHp: 50,
+    price: 120
+  },
+  {
+    id: 'eq_boots_1',
+    name: 'Vân Tung Phi Hành Ngoa',
+    desc: 'Đôi giày thêu vân mây phi hành, tăng +25 Tốc Độ di chuyển trong bí cảnh.',
+    type: 'equipment',
+    quality: 'rare',
+    count: 1,
+    icon: 'compass',
+    price: 100
+  },
+  {
+    id: 'eq_ring_1',
+    name: 'U Tinh Trữ Vật Giới',
+    desc: 'Nhẫn không gian chứa đựng linh lực hư không, tăng +8% Tỉ Lệ Bạo Kích.',
+    type: 'equipment',
+    quality: 'epic',
+    count: 1,
+    icon: 'gem',
+    price: 150
   }
 ];
 

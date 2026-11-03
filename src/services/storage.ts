@@ -1,16 +1,32 @@
-import { PlayerStats } from '../types/game';
-import { INITIAL_PLAYER, REALMS, DEFAULT_CONG_PHAP_LIST } from '../constants/gameData';
+import { PlayerStats, ChiBao } from '../types/game';
+import { INITIAL_PLAYER, REALMS, DEFAULT_CONG_PHAP_LIST, DEFAULT_CHI_BAO_LIST } from '../constants/gameData';
 
-const STORAGE_KEY = 'tientu_save_data_v3';
+const STORAGE_KEY = 'tientu_save_data_v4';
+
+export function getCongPhapEffectDesc(id: string, level: number): string {
+  if (id === 'van_kiem_quy_tong') {
+    const swords = 10 + (level - 1) * 5; // 10, 15, 20, 25, 30
+    const dmg = 100 + level * 25; // 125%, 150%, 175%, 200%, 225%
+    return `Tầng ${level}: ${swords} Phi kiếm/s, ${dmg}% sát thương, tiêu tốn 10 MP/s (ngưng khi đủ 30 kiếm)`;
+  }
+  if (id === 'chan_nguyen_ho_the') {
+    const ratio = 50 + (level - 1) * 25; // 50, 75, 100, 125, 150
+    return `Tầng ${level}: Hào quang bảo vệ bán kính 50px, quy đổi 1:${ratio} (1 MP giảm ${ratio} sát thương)`;
+  }
+  if (id === 'vo_ha_han') {
+    return `Tầng ${level}: Lĩnh vực 300px (trong 140px giảm 99% tốc độ), tiêu hao 5 MP/s`;
+  }
+  return '';
+}
 
 export function loadGame(): PlayerStats {
   try {
     let raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      raw = localStorage.getItem('tientu_save_data_v2');
+      raw = localStorage.getItem('tientu_save_data_v3');
     }
     if (!raw) {
-      raw = localStorage.getItem('tientu_save_data_v1');
+      raw = localStorage.getItem('tientu_save_data_v2');
     }
     if (!raw) return { ...INITIAL_PLAYER };
     const parsed = JSON.parse(raw);
@@ -23,13 +39,32 @@ export function loadGame(): PlayerStats {
       congPhapList: DEFAULT_CONG_PHAP_LIST.map((def) => {
         const found = Array.isArray(parsed.congPhapList) ? parsed.congPhapList.find((p: any) => p.id === def.id) : null;
         if (!found) return def;
+        const lvl = found.level || def.level;
         return {
           ...def,
-          level: found.level || def.level,
+          level: lvl,
           unlocked: found.unlocked !== undefined ? found.unlocked : def.unlocked,
           equipped: found.equipped !== undefined ? found.equipped : def.equipped,
+          effectDesc: getCongPhapEffectDesc(def.id, lvl)
         };
       }),
+      chiBaoList: DEFAULT_CHI_BAO_LIST.map((def) => {
+        const found = Array.isArray(parsed.chiBaoList) ? parsed.chiBaoList.find((c: any) => c.id === def.id) : null;
+        if (!found) return def;
+        return {
+          ...def,
+          unlocked: found.unlocked !== undefined ? found.unlocked : def.unlocked,
+          equipped: found.equipped !== undefined ? found.equipped : def.equipped,
+          stars: found.stars || def.stars,
+          effectDesc: def.id === 'tu_khi_dan' ? `+${found.stars || 1} Tu Vi/s khi tọa thiền (${found.stars || 1} Sao)` : def.effectDesc
+        };
+      }),
+      equippedArtifactIds: Array.isArray(parsed.equippedArtifactIds) && parsed.equippedArtifactIds.length > 0
+        ? parsed.equippedArtifactIds
+        : INITIAL_PLAYER.equippedArtifactIds,
+      phoenixReviveCooldownSeconds: parsed.phoenixReviveCooldownSeconds || 0,
+      hunger: parsed.hunger !== undefined ? parsed.hunger : 100,
+      thirst: parsed.thirst !== undefined ? parsed.thirst : 100,
       isMeditating: false, // Always start non-meditating on page load
       fashion: { ...INITIAL_PLAYER.fashion, ...(parsed.fashion || {}) },
       inventory: parsed.inventory || INITIAL_PLAYER.inventory,

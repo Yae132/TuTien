@@ -77,6 +77,20 @@ export interface Item {
   craftIngredients?: { id: string; count: number }[];
 }
 
+export interface ChiBao {
+  id: 'tu_khi_dan' | 'niet_ban_phuong_vu' | 'huyet_tinh_ma_binh' | 'bich_hai_linh_ho';
+  name: string;
+  desc: string;
+  icon: string;
+  unlocked: boolean;
+  equipped: boolean;
+  stars: number; // 1 to 5
+  maxStars: number;
+  starUpgradeCost: number; // in spirit stones
+  contributionCost: number; // in sect points
+  effectDesc: string;
+}
+
 export interface PlayerStats {
   name: string;
   realmIndex: number;
@@ -91,20 +105,29 @@ export interface PlayerStats {
   critRate: number;
   critDmg: number;
   lifespanSeconds: number; // Thọ nguyên tính bằng giây
-  hunger: number; // 0 (no đủ) -> maxHunger (đói lả)
+  hunger: number; // maxHunger (no đủ) -> 0 (đói lả)
   maxHunger: number;
-  thirst: number; // 0 (đủ nước) -> maxThirst (khát khô)
+  thirst: number; // maxThirst (đủ nước) -> 0 (khát khô)
   maxThirst: number;
   spiritStones: number;
   sectContributionPoints: number; // Điểm cống hiến tông môn
   hasUnlockedVanKiem: boolean;
   congPhapList: CongPhap[];
+  chiBaoList: ChiBao[];
+  equippedArtifactIds: string[]; // Tối đa mang theo 3 chí bảo cùng lúc
+  phoenixReviveCooldownSeconds: number; // 10 phút (600s) cho Niết Bàn Phượng Vũ
   isMeditating: boolean; // Trạng thái tọa thiền tự động
   fashion: FashionConfig;
   inventory: Item[];
   activeMissions: string[];
   totalKills: number;
   cultivationSpeedBonus: number; // Tu vi tăng thêm mỗi giây khi tọa thiền
+  equippedGear?: {
+    weapon?: Item;
+    armor?: Item;
+    boots?: Item;
+    ring?: Item;
+  };
 }
 
 export interface Monster {
@@ -173,6 +196,7 @@ export interface FloatingSword {
   damage: number;
   active: boolean;
   pierce?: number;
+  flightTimer?: number;
 }
 
 export interface FloatingText {
@@ -236,18 +260,28 @@ export interface ArenaRuntimeState {
   // Buff specific runtime states
   damageReductionPercent: number; // Hộ Thể Cương Khí
   hpRegenRate: number; // Quy Tức Hồi Xuân (1 -> 2.5 HP/s)
+  mpRegenRate: number; // Hồi phục chân nguyên (mặc định 5 MP/s + buff)
   dodgeRate: number; // Huyễn Ảnh Thần Hành (+15% né đòn)
   swordCooldownMultiplier: number; // Tốc Ngưng Kiếm Khí (-25% hồi chiêu)
   doubleSwordSpawn: boolean; // Song Kiếm Tề Xuất (2 kiếm cùng lúc)
   swordAoEExplosion: boolean; // Kiếm Cương Bộc Phá (nổ lan khi chạm)
   swordPierceCount: number; // Kiếm Ý Xuyên Vân (xuyên 1 mục tiêu rồi nổ)
   swordSpeedBonusPercent: number; // Tật Phong Phi Kiếm (+40% tốc độ kiếm)
-  hasThoiKhongDoatMenh: boolean; // Thời Không Đoạt Mệnh (25 kill = +10s Thọ Nguyên)
+  hasThoiKhongDoatMenh: boolean; // Deprecated
   killsSinceLastLifespan: number;
   dropRateBonus: number; // Cơ Duyên Bộc Phát (+35% rơi rương & đan dược)
-  // Cong Phap Active State in Arena
+  // Cong Phap Active State in Arena & Tiers
   activeVanKiem: boolean;
   activeChanNguyenShield: boolean;
   activeVoHaHan: boolean;
+  vanKiemSwordsPerTick: number; // 10, 15, 20, 25, 30 theo tầng
+  vanKiemDmgMult: number; // 1.25, 1.5, 1.8, 2.1, 2.5 theo tầng
+  barrierRatio: number; // 50, 75, 100, 125, 150 theo tầng
+  barrierRadius: number; // 50px
+  voHaHanRadius: number; // 300px
+  voHaHanSlowDist: number; // 140px (trong 140px giảm 99% tốc độ)
   orbitingSwords: FloatingSword[];
+  // Chi Bao
+  equippedArtifactIds: string[];
+  phoenixReviveCooldownSeconds: number;
 }

@@ -92,6 +92,16 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
     ky: number;
   }>({ active: false, x: 0, y: 0, kx: 0, ky: 0 });
 
+  // Cong Phap & Chi Bao stats calculated from player
+  const vkData = player.congPhapList?.find((c) => c.id === 'van_kiem_quy_tong');
+  const vkTier = vkData?.unlocked ? vkData.tier : 1;
+  const initialVanKiemSwords = 10 + (vkTier - 1) * 5;
+  const initialVanKiemDmgMult = 1.0 + vkTier * 0.25;
+
+  const barData = player.congPhapList?.find((c) => c.id === 'chan_nguyen_ho_the');
+  const barTier = barData?.unlocked ? barData.tier : 1;
+  const initialBarrierRatio = 50 + (barTier - 1) * 25;
+
   // RUNTIME ARENA STATE (All buffs strictly stay inside this run)
   const gameState = useRef<ArenaRuntimeState>({
     playerX: ARENA_WIDTH / 2,
@@ -110,6 +120,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
     lightningChain: false,
     damageReductionPercent: 0,
     hpRegenRate: 1.0,
+    mpRegenRate: 5.0,
     dodgeRate: 0,
     swordCooldownMultiplier: 1.0,
     doubleSwordSpawn: false,
@@ -129,7 +140,15 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
     activeVanKiem: false,
     activeChanNguyenShield: false,
     activeVoHaHan: false,
-    orbitingSwords: []
+    orbitingSwords: [],
+    vanKiemSwordsPerTick: initialVanKiemSwords,
+    vanKiemDmgMult: initialVanKiemDmgMult,
+    barrierRatio: initialBarrierRatio,
+    barrierRadius: 50,
+    voHaHanRadius: 300,
+    voHaHanSlowDist: 140,
+    equippedArtifactIds: player.equippedArtifactIds || [],
+    phoenixReviveCooldownSeconds: player.phoenixReviveCooldownSeconds || 0
   });
 
   // Entities
@@ -179,7 +198,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
     }
   }, []);
 
-  // Cong Phap 1: Toggle Vạn Kiếm Quy Tông (Q) - Tiêu tốn 10 MP/giây, mỗi giây tạo 10 phi kiếm
+  // Cong Phap 1: Toggle Vạn Kiếm Quy Tông (Q) - Tiêu tốn 10 MP/giây, mỗi giây tạo phi kiếm theo tầng
   const toggleVanKiem = useCallback(() => {
     const s = gameState.current;
     if (s.mp < 10 && !s.activeVanKiem) {
@@ -200,13 +219,16 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
     sound.playSkillCast();
 
     if (s.activeVanKiem) {
-      // Ngay khi bật, lập tức triệu hồi ngay đợt 10 phi kiếm bao quanh người
-      spawnSwords(10, 1.25);
+      // Ngay khi bật, nếu chưa đầy 30 kiếm thì triệu hồi đợt kiếm theo tầng
+      if (s.orbitingSwords.length < 30) {
+        spawnSwords(s.vanKiemSwordsPerTick || 10, s.vanKiemDmgMult || 1.25);
+      }
     }
 
+    const swordCount = s.vanKiemSwordsPerTick || 10;
     floatingTexts.current.push({
       id: 'vk_' + Math.random(),
-      text: s.activeVanKiem ? 'VẠN KIẾM QUY TÔNG: KHỞI! (+10 Kiếm)' : 'VẠN KIẾM QUY TÔNG: THU!',
+      text: s.activeVanKiem ? `VẠN KIẾM QUY TÔNG: KHỞI! (+${swordCount} Kiếm)` : 'VẠN KIẾM QUY TÔNG: THU!',
       x: s.playerX,
       y: s.playerY - 45,
       color: '#facc15',
@@ -216,7 +238,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
     });
   }, [spawnSwords]);
 
-  // Cong Phap 2: Toggle Chân Nguyên Hộ Thể (E) - Bán kính 100px, tỉ lệ 5:1
+  // Cong Phap 2: Toggle Chân Nguyên Hộ Thể (E) - Bán kính 50px, tỉ lệ quy đổi theo tầng (1:50, 1:75,...)
   const toggleBarrier = useCallback(() => {
     const s = gameState.current;
     if (s.mp <= 0 && !s.activeChanNguyenShield) {
@@ -238,7 +260,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
 
     floatingTexts.current.push({
       id: 'bar_' + Math.random(),
-      text: s.activeChanNguyenShield ? 'CHÂN NGUYÊN HỘ THỂ (100px): KÍCH HOẠT!' : 'CHÂN NGUYÊN HỘ THỂ: GIẢI!',
+      text: s.activeChanNguyenShield ? `CHÂN NGUYÊN HỘ THỂ (50px, 1:${s.barrierRatio || 50}): KÍCH HOẠT!` : 'CHÂN NGUYÊN HỘ THỂ: GIẢI!',
       x: s.playerX,
       y: s.playerY - 45,
       color: '#38bdf8',
@@ -248,13 +270,13 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
     });
   }, []);
 
-  // Cong Phap 3: Toggle Vô Hạ Hạn (Gojo) (R) - Bán kính 300px
+  // Cong Phap 3: Toggle Vô Hạ Hạn (Gojo) (R) - Bán kính 300px, 5 MP/s
   const toggleVoHaHan = useCallback(() => {
     const s = gameState.current;
-    if (s.mp < 10 && !s.activeVoHaHan) {
+    if (s.mp < 5 && !s.activeVoHaHan) {
       floatingTexts.current.push({
         id: 'warn_' + Math.random(),
-        text: 'Chân Nguyên không đủ 10 MP!',
+        text: 'Chân Nguyên không đủ 5 MP!',
         x: s.playerX,
         y: s.playerY - 45,
         color: '#f43f5e',
@@ -538,14 +560,42 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
         }
       },
       {
-        id: 'thoi_khong_doat_menh',
-        title: 'Thời Không Đoạt Mệnh (Thượng Phẩm)',
-        desc: 'Tiêu diệt mỗi 25 quái vật hồi lại +10 giây Thọ Nguyên.',
-        icon: 'Clock',
+        id: 'huyen_nguyen_tu_khi',
+        title: 'Huyền Nguyên Tụ Khí (Thượng Phẩm)',
+        desc: 'Tăng tốc độ tự hồi phục Chân Nguyên trong Bí Cảnh thêm +5 MP/giây.',
+        icon: 'Zap',
         tier: 'rare',
         category: 'utility',
         effect: (s) => {
-          s.hasThoiKhongDoatMenh = true;
+          s.mpRegenRate = (s.mpRegenRate || 5.0) + 5.0;
+        }
+      },
+      {
+        id: 'dan_dien_khai_mo',
+        title: 'Đan Điền Khai Mở (Trung Phẩm)',
+        desc: 'Tăng +50 Chân Nguyên Tối Đa và hồi phục đầy Chân Nguyên ngay tức khắc.',
+        icon: 'Sparkles',
+        tier: 'rare',
+        category: 'utility',
+        effect: (s) => {
+          s.maxMp += 50;
+          s.mp = s.maxMp;
+          setMaxMp(s.maxMp);
+          setCurrentMp(Math.round(s.mp));
+        }
+      },
+      {
+        id: 'bat_hoang_kiem_y',
+        title: 'Bát Hoang Kiếm Ý (Cực Phẩm)',
+        desc: 'Tăng +30% Sát Thương toàn bộ phi kiếm khi chém trúng quái vật.',
+        icon: 'Swords',
+        tier: 'legendary',
+        category: 'sword',
+        effect: (s) => {
+          s.atk = Math.round(s.atk * 1.3);
+          s.orbitingSwords.forEach((sw) => {
+            sw.damage = Math.round(sw.damage * 1.3);
+          });
         }
       },
       {
@@ -604,39 +654,49 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
         swordSpawnTimer.current += dt;
         autoAttackScanTimer.current += dt;
 
-        // Passive Regeneration in Bí Cảnh: +5 MP/s, Quy Tức Hồi Xuân (1 HP/s or 2.5 HP/s)
-        state.mp = Math.min(state.maxMp, state.mp + 5 * dt);
+        // Passive Regeneration in Bí Cảnh: MP regen rate (+5 MP/s base), Quy Tức Hồi Xuân (1 HP/s or 2.5 HP/s)
+        state.mp = Math.min(state.maxMp, state.mp + (state.mpRegenRate || 5.0) * dt);
         state.hp = Math.min(state.maxHp, state.hp + (state.hpRegenRate || 1.0) * dt);
 
-        // Cong Phap 1: Vạn Kiếm Quy Tông (Tốn 10 MP/giây, mỗi giây tạo ra 10 thanh phi kiếm bay quanh người)
+        // Niết Bàn Phượng Vũ revive cooldown tick
+        if ((state.phoenixReviveCooldownSeconds || 0) > 0) {
+          state.phoenixReviveCooldownSeconds = Math.max(0, (state.phoenixReviveCooldownSeconds || 0) - dt);
+        }
+
+        // Cong Phap 1: Vạn Kiếm Quy Tông (Tốn 10 MP/giây, dừng tốn khi có đủ 30 kiếm)
         if (state.activeVanKiem) {
           vanKiemTickTimer.current += dt;
           if (vanKiemTickTimer.current >= 1.0) {
             vanKiemTickTimer.current -= 1.0;
-            if (state.mp >= 10) {
-              state.mp -= 10;
-              spawnSwords(10, 1.25);
+            // Nếu đã có khoảng 30 phi kiếm thì không tiêu hao Chân Nguyên để triệu hồi nữa
+            if (state.orbitingSwords.length >= 30) {
+              // Sword cap reached, keep existing swords without MP drain
             } else {
-              state.activeVanKiem = false;
-              setIsVanKiemActive(false);
-              floatingTexts.current.push({
-                id: 'vk_off_' + Math.random(),
-                text: 'Hết MP: Tắt Vạn Kiếm Quy Tông!',
-                x: state.playerX,
-                y: state.playerY - 40,
-                color: '#f43f5e',
-                size: 14,
-                vy: -30,
-                opacity: 1
-              });
+              if (state.mp >= 10) {
+                state.mp -= 10;
+                spawnSwords(state.vanKiemSwordsPerTick || 10, state.vanKiemDmgMult || 1.25);
+              } else {
+                state.activeVanKiem = false;
+                setIsVanKiemActive(false);
+                floatingTexts.current.push({
+                  id: 'vk_off_' + Math.random(),
+                  text: 'Hết MP: Tắt Vạn Kiếm Quy Tông!',
+                  x: state.playerX,
+                  y: state.playerY - 40,
+                  color: '#f43f5e',
+                  size: 14,
+                  vy: -30,
+                  opacity: 1
+                });
+              }
             }
           }
         }
 
-        // Cong Phap 3: Vô Hạ Hạn (Gojo) (Tốn 10 MP/s)
+        // Cong Phap 3: Vô Hạ Hạn (Gojo) (Giảm tiêu tốn chân nguyên xuống 5 MP/s)
         if (state.activeVoHaHan) {
-          if (state.mp >= 10 * dt) {
-            state.mp -= 10 * dt;
+          if (state.mp >= 5 * dt) {
+            state.mp -= 5 * dt;
           } else {
             state.activeVoHaHan = false;
             setIsVoHaHanActive(false);
@@ -747,7 +807,30 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             sw.y = state.playerY + Math.sin(sw.orbitAngle) * sw.orbitRadius;
             sw.angle = sw.orbitAngle + Math.PI / 2;
           } else if (sw.state === 'attacking') {
-            const targetM = monsters.current.find((m) => m.id === sw.targetMonsterId);
+            sw.flightTimer = (sw.flightTimer || 0) + dt;
+            let targetM = monsters.current.find((m) => m.id === sw.targetMonsterId && m.hp > 0);
+
+            // Dynamic retargeting if original target died
+            if (!targetM) {
+              let closestDist = 500;
+              let nextTarget: Monster | null = null;
+              for (const m of monsters.current) {
+                if (m.hp > 0) {
+                  const d = Math.hypot(m.x - sw.x, m.y - sw.y);
+                  if (d < closestDist) {
+                    closestDist = d;
+                    nextTarget = m;
+                  }
+                }
+              }
+              if (nextTarget) {
+                sw.targetMonsterId = nextTarget.id;
+                sw.targetX = nextTarget.x;
+                sw.targetY = nextTarget.y;
+                targetM = nextTarget;
+              }
+            }
+
             if (targetM) {
               sw.targetX = targetM.x;
               sw.targetY = targetM.y;
@@ -758,8 +841,15 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             sw.y += Math.sin(ang) * sw.speed * dt;
             sw.angle = ang;
 
+            // Despawn condition: flight timer > 2.5s or distance > 1200px
+            const distFromPlayer = Math.hypot(sw.x - state.playerX, sw.y - state.playerY);
+            if (sw.flightTimer > 2.5 || distFromPlayer > 1200) {
+              sw.active = false;
+            }
+
             // Check hit target monster
             for (const m of monsters.current) {
+              if (m.hp <= 0) continue;
               const hitDist = Math.hypot(m.x - sw.x, m.y - sw.y);
               if (hitDist < m.radius + 12) {
                 // Check if turtle is shielding (70% damage reduction)
@@ -786,7 +876,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
                   const aoeRadius = 65;
                   const aoeDmg = Math.round(sw.damage * 0.75);
                   monsters.current.forEach((nearbyM) => {
-                    if (nearbyM.id !== m.id && Math.hypot(nearbyM.x - m.x, nearbyM.y - m.y) < aoeRadius + nearbyM.radius) {
+                    if (nearbyM.id !== m.id && nearbyM.hp > 0 && Math.hypot(nearbyM.x - m.x, nearbyM.y - m.y) < aoeRadius + nearbyM.radius) {
                       nearbyM.hp -= aoeDmg;
                       nearbyM.hitFlashTimer = 0.12;
                       floatingTexts.current.push({
@@ -842,14 +932,18 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
 
         // 5. Update Projectiles (Player & Enemy)
         const pRadius = 18;
-        const barrierRadius = 100; // Tăng bán kính Chân Nguyên Hộ Thể lên 100px
+        const barrierRadius = state.barrierRadius || 50; // Giảm hào quang bảo vệ xuống 50px
 
         projectiles.current.forEach((p) => {
           // Cong Phap 3: VÔ HẠ HẠN (GOJO) làm chậm cả đòn tấn công tầm xa của kẻ địch
           if (p.isEnemy && state.activeVoHaHan) {
             const distToP = Math.hypot(p.x - state.playerX, p.y - state.playerY);
             if (distToP < 300) {
-              const slowFactor = Math.max(0.04, distToP / 300); // Bị làm chậm như quay chậm trong không gian Gojo
+              const slowDist = state.voHaHanSlowDist || 140;
+              const slowFactor =
+                distToP <= slowDist
+                  ? 0.01
+                  : 0.01 + ((distToP - slowDist) / (300 - slowDist)) * 0.69;
               p.x += p.vx * slowFactor * dt;
               p.y += p.vy * slowFactor * dt;
             } else {
@@ -870,9 +964,9 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             // Check enemy projectile hitting barrier or player
             const distToPlayer = Math.hypot(p.x - state.playerX, p.y - state.playerY);
 
-            // Barrier absorbs enemy projectile (1:50 ratio: 1 MP hấp thụ 50 sát thương)
+            // Barrier absorbs enemy projectile (tỉ lệ quy đổi theo tầng: 1:50, 1:75,...)
             if (state.activeChanNguyenShield && state.mp > 0 && distToPlayer < barrierRadius + p.radius) {
-              const mpLoss = Math.max(1, Math.ceil(p.damage / 50));
+              const mpLoss = Math.max(1, Math.ceil(p.damage / (state.barrierRatio || 50)));
               state.mp = Math.max(0, state.mp - mpLoss);
               sound.playBarrierHit();
 
@@ -1036,7 +1130,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             mColor = '#eab308';
             mAccent = '#ca8a04';
             mRadius = 26;
-            mStone = 15;
+            mStone = 1; // Toàn bộ quái đều rớt 1 Linh Thạch
             mXp = 35;
             mAtk = 28 + currentMinute * 6;
             dropMatId = Math.random() < 0.5 ? 'mat_kim_giap' : 'food_thit_heo_rung';
@@ -1051,7 +1145,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             mColor = '#f97316';
             mAccent = '#fdba74';
             mRadius = 24;
-            mStone = 10;
+            mStone = 1;
             mXp = 25;
             mAtk = 22 + currentMinute * 5;
             dropMatId = Math.random() < 0.4 ? 'mat_ruong_tinh_anh' : 'mat_ho_hoa';
@@ -1066,7 +1160,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             mColor = '#64748b';
             mAccent = '#22d3ee';
             mRadius = 25;
-            mStone = 5;
+            mStone = 1;
             mXp = 14;
             mAtk = 18 + currentMinute * 4;
             dropMatId = 'mat_giap_quy';
@@ -1081,7 +1175,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             mColor = '#84cc16';
             mAccent = '#ef4444';
             mRadius = 19;
-            mStone = 3;
+            mStone = 1;
             mXp = 8;
             mAtk = 15 + currentMinute * 4;
             dropMatId = 'mat_truc_thiet';
@@ -1096,7 +1190,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             mColor = '#c084fc';
             mAccent = '#7c3aed';
             mRadius = 18;
-            mStone = 3;
+            mStone = 1;
             mXp = 7;
             mAtk = 14 + currentMinute * 3;
             dropMatId = 'mat_canh_doi';
@@ -1111,7 +1205,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             mColor = '#dc2626';
             mAccent = '#ffffff';
             mRadius = 18;
-            mStone = 2;
+            mStone = 1;
             mXp = 6;
             mAtk = 12 + currentMinute * 3;
             dropMatId = 'mat_doc_bao_tu';
@@ -1126,7 +1220,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
             mColor = '#785b65';
             mAccent = '#ef4444';
             mRadius = 17;
-            mStone = 2;
+            mStone = 1;
             mXp = 5;
             mAtk = 11 + currentMinute * 3;
             dropMatId = 'mat_long_tho';
@@ -1183,11 +1277,16 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
           const dist = Math.hypot(dx, dy);
           const ang = Math.atan2(dy, dx);
 
-          // Cong Phap 3: VÔ HẠ HẠN (GOJO) (Làm chậm quái từ 10% ở viền 300px đến 99% khi áp sát)
+          // Cong Phap 3: VÔ HẠ HẠN (GOJO) (Làm chậm 99% trong phạm vi 140px, 140px-300px làm chậm giảm dần)
           let speedMultiplier = 1.0;
           if (state.activeVoHaHan && dist < voHaHanRadius) {
-            const factor = Math.max(0, Math.min(1, dist / voHaHanRadius));
-            speedMultiplier = 0.01 + factor * 0.89; // 0.01 sát người (chậm 99%), 0.90 ở viền 300px
+            const slowDist = state.voHaHanSlowDist || 140;
+            if (dist <= slowDist) {
+              speedMultiplier = 0.01; // Giảm 99% tốc độ xa nhân vật tới 140px
+            } else {
+              const ratio = (dist - slowDist) / (voHaHanRadius - slowDist);
+              speedMultiplier = 0.01 + ratio * 0.69;
+            }
           }
 
           // Special Monster Behaviors
@@ -1320,24 +1419,36 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
           if (m.hp <= 0) {
             state.monstersKilled += 1;
 
-            // Thời Không Đoạt Mệnh: Cứ diệt 25 quái vật hồi lại +10 giây Thọ Nguyên
-            if (state.hasThoiKhongDoatMenh) {
-              state.killsSinceLastLifespan = (state.killsSinceLastLifespan || 0) + 1;
-              if (state.killsSinceLastLifespan >= 25) {
-                state.killsSinceLastLifespan = 0;
-                player.lifespanSeconds = (player.lifespanSeconds || 0) + 10;
-                sound.playSkillCast();
-                floatingTexts.current.push({
-                  id: 'life_' + Math.random(),
-                  text: '+10s Thọ Nguyên!',
-                  x: state.playerX,
-                  y: state.playerY - 45,
-                  color: '#22c55e',
-                  size: 16,
-                  vy: -40,
-                  opacity: 1
-                });
-              }
+            // Chí Bảo: Huyết Tinh Ma Bình (Phi kiếm trảm sát yêu thú hồi 1% Khí Huyết Tối Đa)
+            if (state.equippedArtifactIds?.includes('chi_bao_huyet_tinh')) {
+              const healHp = Math.max(1, Math.round(state.maxHp * 0.01));
+              state.hp = Math.min(state.maxHp, state.hp + healHp);
+              floatingTexts.current.push({
+                id: 'hp_mb_' + Math.random(),
+                text: `+${healHp} HP (Ma Bình)`,
+                x: state.playerX + (Math.random() - 0.5) * 20,
+                y: state.playerY - 20,
+                color: '#f43f5e',
+                size: 13,
+                vy: -30,
+                opacity: 0.95
+              });
+            }
+
+            // Chí Bảo: Bích Hải Linh Hồ (Phi kiếm trảm sát yêu thú hút lấy 1% Chân Nguyên Tối Đa)
+            if (state.equippedArtifactIds?.includes('chi_bao_bich_hai')) {
+              const healMp = Math.max(1, Math.round(state.maxMp * 0.01));
+              state.mp = Math.min(state.maxMp, state.mp + healMp);
+              floatingTexts.current.push({
+                id: 'mp_lh_' + Math.random(),
+                text: `+${healMp} MP (Linh Hồ)`,
+                x: state.playerX + (Math.random() - 0.5) * 20,
+                y: state.playerY - 35,
+                color: '#06b6d4',
+                size: 13,
+                vy: -30,
+                opacity: 0.95
+              });
             }
 
             // Drop EXP
@@ -1353,13 +1464,13 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
               vy: (Math.random() - 0.5) * 40
             });
 
-            // Drop Spirit Stones
+            // Drop Spirit Stones (Toàn bộ quái đều rớt 1 Linh Thạch)
             lootOrbs.current.push({
               id: 'st_' + Math.random(),
               x: m.x + (Math.random() - 0.5) * 15,
               y: m.y + (Math.random() - 0.5) * 15,
               type: 'stone',
-              amount: m.stoneDrop,
+              amount: 1,
               color: '#facc15',
               radius: 8,
               vx: (Math.random() - 0.5) * 50,
@@ -1368,7 +1479,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
 
             floatingTexts.current.push({
               id: 'txt_' + Math.random(),
-              text: `+${m.stoneDrop} Linh Thạch`,
+              text: `+1 Linh Thạch`,
               x: m.x,
               y: m.y - 20,
               color: '#facc15',
@@ -1400,10 +1511,10 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
           }
 
           // MELEE COMBAT & BITE COOLDOWN MECHANICS
-          // Cong Phap 2: CHÂN NGUYÊN HỘ THỂ (Bán kính 100px, tỉ lệ 1:50 - cứ 1 MP giảm 50 sát thương)
+          // Cong Phap 2: CHÂN NGUYÊN HỘ THỂ (Bán kính 50px, tỉ lệ quy đổi 1:50, 1:75,... theo tầng)
           if (state.activeChanNguyenShield && state.mp > 0) {
             if (dist < barrierRadius + m.radius) {
-              // Block monster at 100px barrier boundary
+              // Block monster at barrier boundary
               m.x = state.playerX - Math.cos(ang) * (barrierRadius + m.radius + 2);
               m.y = state.playerY - Math.sin(ang) * (barrierRadius + m.radius + 2);
 
@@ -1412,8 +1523,8 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
                 m.attackCooldown = m.attackInterval || 1.0;
                 m.biteAnimTimer = 0.22;
 
-                // Tỉ lệ 1:50 (1 chân nguyên giảm 50 sát thương, hiển thị trừ X chân nguyên)
-                const mpLoss = Math.max(1, Math.ceil(m.atk / 50));
+                // Tỉ lệ quy đổi theo tầng (1 chân nguyên giảm X sát thương, hiển thị trừ MP)
+                const mpLoss = Math.max(1, Math.ceil(m.atk / (state.barrierRatio || 50)));
                 state.mp = Math.max(0, state.mp - mpLoss);
                 sound.playBarrierHit();
 
@@ -1491,18 +1602,39 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
         });
         monsters.current = survivingMonsters;
 
-        // Player Defeat Check: RỜI BÍ CẢNH CÒN 1 KHÍ HUYẾT THAY VÌ CHẾT HẲN
+        // Player Defeat Check: Kiểm tra Niết Bàn Phượng Vũ trước, nếu không có sẽ chết thật sự
         if (state.hp <= 0) {
-          isPaused.current = true;
-          onRetreat({
-            survived: false,
-            spiritStonesGained: Math.floor(state.spiritStonesGained * 0.5),
-            monstersKilled: state.monstersKilled,
-            survivalSeconds: Math.floor(state.survivalSeconds),
-            remainingHp: 1, // Ra ngoài còn đúng 1 Khí Huyết theo yêu cầu!
-            lootItems: state.lootCollected
-          });
-          return;
+          const hasPhoenix = state.equippedArtifactIds?.includes('chi_bao_niet_ban');
+          const phoenixCooling = (state.phoenixReviveCooldownSeconds || 0) > 0;
+
+          if (hasPhoenix && !phoenixCooling) {
+            state.hp = Math.round(state.maxHp * 0.5);
+            state.mp = Math.round(state.maxMp * 0.5);
+            state.phoenixReviveCooldownSeconds = 600; // 10 phút hồi chiêu
+            sound.playLevelUp();
+            cameraShake.current = 14;
+            floatingTexts.current.push({
+              id: 'phoenix_revive_' + Math.random(),
+              text: 'NIẾT BÀN TRÙNG SINH! (+50% HP & MP)',
+              x: state.playerX,
+              y: state.playerY - 60,
+              color: '#f97316',
+              size: 22,
+              vy: -55,
+              opacity: 1
+            });
+          } else {
+            isPaused.current = true;
+            onRetreat({
+              survived: false,
+              spiritStonesGained: Math.floor(state.spiritStonesGained * 0.5),
+              monstersKilled: state.monstersKilled,
+              survivalSeconds: Math.floor(state.survivalSeconds),
+              remainingHp: 0, // Chết thật sự khi hết Khí Huyết
+              lootItems: state.lootCollected
+            });
+            return;
+          }
         }
 
         // 8. Loot Magnet & Collection (Exp, Linh Thạch, Đan Dược & Nguyên Liệu)
@@ -1620,19 +1752,29 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
       ctx.strokeRect(30, 30, ARENA_WIDTH - 60, ARENA_HEIGHT - 60);
       ctx.shadowBlur = 0;
 
-      // CONG PHAP 3: VÔ HẠ HẠN (GOJO) DOMAIN VISUAL (Lĩnh vực làm chậm 300px)
+      // CONG PHAP 3: VÔ HẠ HẠN (GOJO) DOMAIN VISUAL (Lĩnh vực làm chậm 300px, vùng 99% 140px)
       if (state.activeVoHaHan) {
         ctx.save();
-        const vRadius = 300; // Mở rộng lĩnh vực không gian lên 300px
+        const vRadius = 300;
+        const slowDist = state.voHaHanSlowDist || 140;
         const grad = ctx.createRadialGradient(state.playerX, state.playerY, 20, state.playerX, state.playerY, vRadius);
-        grad.addColorStop(0, 'rgba(192, 132, 252, 0.4)');
-        grad.addColorStop(0.5, 'rgba(168, 85, 247, 0.18)');
+        grad.addColorStop(0, 'rgba(192, 132, 252, 0.45)');
+        grad.addColorStop(slowDist / vRadius, 'rgba(168, 85, 247, 0.28)');
         grad.addColorStop(0.85, 'rgba(126, 34, 206, 0.08)');
         grad.addColorStop(1, 'rgba(126, 34, 206, 0)');
         ctx.fillStyle = grad;
         ctx.beginPath();
         ctx.arc(state.playerX, state.playerY, vRadius, 0, Math.PI * 2);
         ctx.fill();
+
+        // Inner 140px boundary ring (Vùng giảm 99% tốc độ)
+        ctx.strokeStyle = 'rgba(236, 72, 153, 0.6)';
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(state.playerX, state.playerY, slowDist, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
         // Concentric ripple rings of Gojo space distortion
         ctx.strokeStyle = 'rgba(216, 180, 254, 0.45)';
@@ -1655,16 +1797,16 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
         ctx.restore();
       }
 
-      // CONG PHAP 2: CHÂN NGUYÊN HỘ THỂ BARRIER VISUAL (Bán kính 100px)
+      // CONG PHAP 2: CHÂN NGUYÊN HỘ THỂ BARRIER VISUAL (Bán kính 50px)
       if (state.activeChanNguyenShield && state.mp > 0) {
         ctx.save();
-        const bRadius = 100; // Tăng bán kính Chân Nguyên Hộ Thể lên 100px
+        const bRadius = state.barrierRadius || 50; // Giảm hào quang bảo vệ xuống 50px
         ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 3;
         ctx.shadowColor = '#0284c7';
         ctx.shadowBlur = 18;
         ctx.beginPath();
-        ctx.arc(state.playerX, state.playerY, bRadius + Math.sin(currentTime * 0.007) * 4, 0, Math.PI * 2);
+        ctx.arc(state.playerX, state.playerY, bRadius + Math.sin(currentTime * 0.007) * 3, 0, Math.PI * 2);
         ctx.stroke();
 
         // Inner golden sacred aura
@@ -1674,7 +1816,7 @@ export const ArenaCanvas: React.FC<ArenaCanvasProps> = ({ player, onRetreat, onS
         ctx.strokeStyle = 'rgba(250, 204, 21, 0.4)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(state.playerX, state.playerY, bRadius - 6, 0, Math.PI * 2);
+        ctx.arc(state.playerX, state.playerY, bRadius - 4, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
       }
